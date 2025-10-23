@@ -47,7 +47,7 @@ export class StripeWebhookSeverErrorResponse extends RetryableErrorWebhookRespon
   }
 }
 
-export class StripeWebhookTransactionMissingReponse extends NonRetryableErrorWebhookResponse {
+export class StripeWebhookTransactionMissingResponse extends NonRetryableErrorWebhookResponse {
   readonly message = "Transaction is missing";
 
   getResponse() {
@@ -57,10 +57,34 @@ export class StripeWebhookTransactionMissingReponse extends NonRetryableErrorWeb
   }
 }
 
-export type PossibleStripeWebhookSuccessResponses = StripeWebhookSuccessResponse;
+export class ObjectCreatedOutsideOfSaleorResponse extends NonRetryableErrorWebhookResponse {
+  readonly message = "Object created outside of Saleor is not processable";
+
+  getResponse() {
+    return new Response(this.message, {
+      status: this.statusCode,
+    });
+  }
+}
+
+export class StripeWebhookUnrecognizedEventResponse {
+  readonly statusCode = 200;
+  readonly message = "Event from unrecognized connected account - ignored";
+
+  getResponse() {
+    return new Response(this.message, {
+      status: this.statusCode,
+    });
+  }
+}
+
+export type PossibleStripeWebhookSuccessResponses =
+  | StripeWebhookSuccessResponse
+  | StripeWebhookUnrecognizedEventResponse;
 
 export type PossibleStripeWebhookErrorResponses =
   | StripeWebhookMalformedRequestResponse
   | StripeWebhookAppIsNotConfiguredResponse
   | StripeWebhookSeverErrorResponse
-  | StripeWebhookTransactionMissingReponse;
+  | StripeWebhookTransactionMissingResponse
+  | ObjectCreatedOutsideOfSaleorResponse;
