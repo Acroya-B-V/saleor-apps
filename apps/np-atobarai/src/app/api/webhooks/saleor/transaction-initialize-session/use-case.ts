@@ -141,9 +141,20 @@ export class TransactionInitializeSessionUseCase extends BaseUseCase {
       case CreditCheckResult.BeforeReview:
         return ok(
           new TransactionInitializeSessionUseCaseResponse.Failure({
+            apiError: transaction.authori_result,
             transactionResult: new ChargeFailureResult(),
             error: new AtobaraiFailureTransactionError(
               `Atobarai transaction failed with result: ${transaction.authori_result}`,
+            ),
+          }),
+        );
+      default:
+        return ok(
+          new TransactionInitializeSessionUseCaseResponse.Failure({
+            apiError: transaction.authori_result,
+            transactionResult: new ChargeFailureResult(),
+            error: new AtobaraiFailureTransactionError(
+              `Unexpected Atobarai transaction result: ${transaction.authori_result}`,
             ),
           }),
         );
@@ -190,7 +201,11 @@ export class TransactionInitializeSessionUseCase extends BaseUseCase {
     );
 
     if (registerTransactionResult.isErr()) {
-      this.logger.error("Failed to register transaction with Atobarai", {
+      /**
+       * We do not log error, because it's likely on of expected errors from the API
+       * TODO: Consider adding exact mapping of every available error - some of them can be actually errors, some of them not
+       */
+      this.logger.warn("Failed to register transaction with Atobarai", {
         error: registerTransactionResult.error,
       });
 
@@ -198,6 +213,10 @@ export class TransactionInitializeSessionUseCase extends BaseUseCase {
         new TransactionInitializeSessionUseCaseResponse.Failure({
           transactionResult: new ChargeFailureResult(),
           error: registerTransactionResult.error,
+          apiError:
+            "apiError" in registerTransactionResult.error
+              ? registerTransactionResult.error.apiError
+              : undefined,
         }),
       );
     }

@@ -1,5 +1,64 @@
 # saleor-app-avatax
 
+## 1.21.7
+
+### Patch Changes
+
+- 9e17703c: Updated tTRPC to 10.45.3
+
+## 1.21.6
+
+### Patch Changes
+
+- Updated dependencies [37b91c88]
+  - @saleor/apps-otel@2.4.0
+  - @saleor/apps-logger@1.6.3
+
+## 1.21.5
+
+### Patch Changes
+
+- 98459d79: Updated Next.js to 15.2.6
+- b1f10da0: Added logs when app fails to install due to error in APL, or due to disallowed domain and when app installs successfully
+- Updated dependencies [98459d79]
+  - @saleor/apps-logger@1.6.2
+  - @saleor/apps-otel@2.3.1
+  - @saleor/react-hook-form-macaw@0.2.16
+  - @saleor/sentry-utils@0.2.5
+  - @saleor/apps-shared@1.14.1
+  - @saleor/apps-ui@1.3.2
+  - @saleor/webhook-utils@0.2.6
+
+## 1.21.4
+
+### Patch Changes
+
+- 8de99889: Adding support to overwrite the shipFrom address in the avatax calculation using private metadata on order or checkout object. Example:
+  {
+  "key": "avataxShipFromAddress",
+  "value": "{\"street\":\"123 Custom Street\",\"city\":\"Custom City\",\"state\":\"CA\",\"zip\":\"90210\",\"country\":\"US\"}"
+  }
+- 58fac0d5: Dropped support for Saleor 3.19
+
+## 1.21.3
+
+### Patch Changes
+
+- 3f2e2f51: Changed some of Saleor webhook response statuses.
+
+  Previously, app either returned 5xx (if we expect Saleor to retry) or 4xx (if we can't process, for various reasons, but we don't want a retry).
+
+  Due to upcoming Saleor Circuit Breaker mechanism, we no longer can rely on 4xx status for every case. After this change, app will sometimes return status 202 in case of error.
+
+  For example - when app is not configured, it's expected that 4xx is returned and Saleor will disable not configured app eventually. But in case of webhooks that are not processable _sometimes_,
+  app will return ACCEPTED code and exit gracefully. This way, Saleor will not disable healthy webhooks, that can't be process under certain conditions
+
+## 1.21.2
+
+### Patch Changes
+
+- 86747b3c: When users open app outside of Saleor Dashboard's iframe we will now display an error message with explanation. Previously we rendered app's UI, which caused frontend to make requests to the app without any required data (tokens, saleorApiUrl, etc.) which resulted in error logs.
+
 ## 1.21.1
 
 ### Patch Changes

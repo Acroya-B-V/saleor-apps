@@ -1,5 +1,107 @@
 # saleor-app-payment-np-atobarai
 
+## 1.2.8
+
+### Patch Changes
+
+- 204d4889: Fixed HTTP 500 errors when customer data (email, phone, billing address) is missing.
+  These validation errors now return HTTP 202 instead, preventing Saleor webhook circuit breaker from disabling payment webhooks.
+- c5850b91: Zod validation errors will no longer cause app to throw unexpected exception, and instead will be properly handled.
+  Previously they were not caught and caused app to send `logger.error`
+
+## 1.2.7
+
+### Patch Changes
+
+- e2eb32bb: Additionally print warning logs for raw Atobarai responses
+
+## 1.2.6
+
+### Patch Changes
+
+- 9e17703c: Updated tTRPC to 10.45.3
+
+## 1.2.5
+
+### Patch Changes
+
+- c0533509: Removed unnecessary error log (duplicated) for trpc
+
+## 1.2.4
+
+### Patch Changes
+
+- f25d5c2c: Loosen validation of Atobarai error response. Now app will accept shape of errors containing arbitrary strings, without expecting their specific literal value.
+- Updated dependencies [37b91c88]
+  - @saleor/apps-otel@2.4.0
+  - @saleor/apps-logger@1.6.3
+  - @saleor/dynamo-config-repository@1.0.2
+
+## 1.2.3
+
+### Patch Changes
+
+- 7c891443: App will now return `apiError` field that (if available) comes from Atobarai API. It will be returned in TransactionInitializeSession and TransactionProcessSession webhook responses, together with existing errors. Error codes are internal to Atobarai API and can be verified in relevant API docs
+
+## 1.2.2
+
+### Patch Changes
+
+- 8687dd7d: Accept zipcode with format "xxx-xxxx" (dash). Previously app was throwing internally, because address library was expecting different format.
+
+## 1.2.1
+
+### Patch Changes
+
+- 985bcfaa: Fallback to original address city and city area if zip code can't be resolved
+
+## 1.2.0
+
+### Minor Changes
+
+- 9fda34e8: App is now using official Japanese post database to resolve city and neighbourhood from the provided zipcode
+
+### Patch Changes
+
+- c91ab827: Fixed formatting address resolved for Atobarai - it will include city & city area
+- 98459d79: Updated Next.js to 15.2.6
+- b1f10da0: Added logs when app fails to install due to error in APL, or due to disallowed domain and when app installs successfully
+- Updated dependencies [98459d79]
+  - @saleor/apps-domain@1.0.2
+  - @saleor/dynamo-config-repository@1.0.1
+  - @saleor/errors@1.0.1
+  - @saleor/apps-logger@1.6.2
+  - @saleor/apps-otel@2.3.1
+  - @saleor/react-hook-form-macaw@0.2.16
+  - @saleor/apps-shared@1.14.1
+  - @saleor/apps-trpc@4.0.4
+  - @saleor/apps-ui@1.3.2
+
+## 1.1.3
+
+### Patch Changes
+
+- 3f2e2f51: Changed some of Saleor webhook response statuses.
+
+  Previously, app either returned 5xx (if we expect Saleor to retry) or 4xx (if we can't process, for various reasons, but we don't want a retry).
+
+  Due to upcoming Saleor Circuit Breaker mechanism, we no longer can rely on 4xx status for every case. After this change, app will sometimes return status 202 in case of error.
+
+  For example - when app is not configured, it's expected that 4xx is returned and Saleor will disable not configured app eventually. But in case of webhooks that are not processable _sometimes_,
+  app will return ACCEPTED code and exit gracefully. This way, Saleor will not disable healthy webhooks, that can't be process under certain conditions
+
+## 1.1.2
+
+### Patch Changes
+
+- ac8ee7c7: Changed errors handling - now MalformedRequest returns 400 (as expected) instead of 500. This way we clearly distinguish between application failure and request that can't be processed. Additionally for async webhooks, Saleor will not retry the request. Also, errors from Atobarai API are logged as warnings, because usually they are related to incorrect business data (like addresses) - hence app should not indicate failures
+
+## 1.1.1
+
+### Patch Changes
+
+- 86747b3c: When users open app outside of Saleor Dashboard's iframe we will now display an error message with explanation. Previously we rendered app's UI, which caused frontend to make requests to the app without any required data (tokens, saleorApiUrl, etc.) which resulted in error logs.
+
 ## 1.1.0
 
 ### Minor Changes
