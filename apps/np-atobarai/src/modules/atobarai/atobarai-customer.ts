@@ -2,9 +2,9 @@ import { BaseError } from "@saleor/errors";
 import { z } from "zod";
 
 import { SourceObjectFragment } from "@/generated/graphql";
+import { AtobaraiAddressFormatter } from "@/modules/atobarai/atobarai-address-formatter";
 
 import {
-  formatAddress,
   formatCustomerName,
   formatPhone,
   getEmailFromSourceObject,
@@ -54,14 +54,23 @@ export const createAtobaraiCustomer = (event: { sourceObject: SourceObjectFragme
     throw new AtobaraiCustomerMissingDataError("Email is required to create AtobaraiCustomer");
   }
 
-  return AtobaraiCustomerSchema.parse({
+  const parseResult = AtobaraiCustomerSchema.safeParse({
     customer_name: formatCustomerName(billingAddress),
     company_name: billingAddress.companyName,
     zip_code: billingAddress.postalCode,
-    address: formatAddress(billingAddress),
+    address: new AtobaraiAddressFormatter().formatAddress(billingAddress),
     tel: formatPhone(billingAddress.phone),
     email: email,
   });
+
+  if (!parseResult.success) {
+    throw new AtobaraiCustomerMissingDataError(
+      `Invalid customer data: ${parseResult.error.errors.map((e) => e.message).join(", ")}`,
+      { cause: parseResult.error },
+    );
+  }
+
+  return parseResult.data;
 };
 
 export type AtobaraiCustomer = z.infer<typeof AtobaraiCustomerSchema>;

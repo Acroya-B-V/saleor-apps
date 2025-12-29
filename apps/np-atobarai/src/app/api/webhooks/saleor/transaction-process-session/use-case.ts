@@ -111,6 +111,15 @@ export class TransactionProcessSessionUseCase extends BaseUseCase {
             ),
           }),
         );
+      default:
+        return ok(
+          new TransactionProcessSessionUseCaseResponse.Failure({
+            transactionResult: new ChargeFailureResult(),
+            error: new AtobaraiFailureTransactionError(
+              `Unexpected Atobarai transaction result: ${transaction.authori_result}`,
+            ),
+          }),
+        );
     }
   }
 
@@ -154,7 +163,7 @@ export class TransactionProcessSessionUseCase extends BaseUseCase {
     );
 
     if (changeTransactionResult.isErr()) {
-      this.logger.error("Failed to change transaction with Atobarai", {
+      this.logger.warn("Failed to change transaction with Atobarai", {
         error: changeTransactionResult.error,
       });
 
@@ -162,6 +171,10 @@ export class TransactionProcessSessionUseCase extends BaseUseCase {
         new TransactionProcessSessionUseCaseResponse.Failure({
           transactionResult: new ChargeFailureResult(),
           error: changeTransactionResult.error,
+          apiError:
+            "apiError" in changeTransactionResult.error
+              ? changeTransactionResult.error.apiError
+              : undefined,
         }),
       );
     }

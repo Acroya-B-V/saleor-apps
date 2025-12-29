@@ -17,11 +17,13 @@ export const mockedSourceObject = {
     country: {
       code: "JP",
     },
-    postalCode: "BillingPostalCode",
+    postalCode: "1000001",
     countryArea: "BillingCountryArea",
     streetAddress1: "BillingStreetAddress1",
     streetAddress2: "BillingStreetAddress2",
     companyName: "BillingCompanyName",
+    city: "Tokyo",
+    cityArea: "Shibuya",
   },
   shippingAddress: {
     firstName: "ShippingFirstName",
@@ -30,11 +32,13 @@ export const mockedSourceObject = {
     country: {
       code: "JP",
     },
-    postalCode: "ShippingPostalCode",
+    postalCode: "1000001",
     countryArea: "ShippingCountryArea",
     streetAddress1: "ShippingStreetAddress1",
     streetAddress2: "ShippingStreetAddress2",
     companyName: "ShippingCompanyName",
+    city: "Tokyo",
+    cityArea: "Shibuya",
   },
   email: "source-object@email.com",
   totalPrice: {

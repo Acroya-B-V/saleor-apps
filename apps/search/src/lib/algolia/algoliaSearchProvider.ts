@@ -4,9 +4,12 @@ import {
   ProductVariantWebhookPayloadFragment,
   ProductWebhookPayloadFragment,
 } from "../../../generated/graphql";
+import { ALGOLIA_TIMEOUT_MS } from "../algolia-timeouts";
 import { isNotNil } from "../isNotNil";
 import { createLogger } from "../logger";
 import { SearchProvider } from "../searchProvider";
+import { createTraceEffect } from "../trace-effect";
+import { ALGOLIA_SLOW_THRESHOLD_MS } from "../trace-effect-thresholds";
 import {
   AlgoliaObject,
   channelListingToAlgoliaIndexId,
@@ -30,6 +33,23 @@ export class AlgoliaSearchProvider implements SearchProvider {
   #indexNames: Array<string>;
   #enabledKeys: string[];
 
+  #traceSaveObjects = createTraceEffect({
+    name: "Algolia saveObjects",
+    slowThresholdMs: ALGOLIA_SLOW_THRESHOLD_MS,
+  });
+  #traceDeleteObjects = createTraceEffect({
+    name: "Algolia deleteObjects",
+    slowThresholdMs: ALGOLIA_SLOW_THRESHOLD_MS,
+  });
+  #traceSetSettings = createTraceEffect({
+    name: "Algolia setSettings",
+    slowThresholdMs: ALGOLIA_SLOW_THRESHOLD_MS,
+  });
+  #traceDeleteBy = createTraceEffect({
+    name: "Algolia deleteBy",
+    slowThresholdMs: ALGOLIA_SLOW_THRESHOLD_MS,
+  });
+
   constructor({
     appId,
     apiKey,
@@ -52,7 +72,10 @@ export class AlgoliaSearchProvider implements SearchProvider {
       Object.entries(groupedByIndex).map(([indexName, objects]) => {
         const index = this.#algolia.initIndex(indexName);
 
-        return index.saveObjects(objects);
+        return this.#traceSaveObjects(
+          () => index.saveObjects(objects, { timeout: ALGOLIA_TIMEOUT_MS }),
+          { indexName, objectsCount: objects.length },
+        );
       }),
     );
   }
@@ -61,10 +84,13 @@ export class AlgoliaSearchProvider implements SearchProvider {
     logger.debug("deleteGroupedByIndex called");
 
     return Promise.all(
-      Object.entries(groupedByIndex).map(([indexName, objects]) => {
+      Object.entries(groupedByIndex).map(([indexName, objectIds]) => {
         const index = this.#algolia.initIndex(indexName);
 
-        return index.deleteObjects(objects);
+        return this.#traceDeleteObjects(
+          () => index.deleteObjects(objectIds, { timeout: ALGOLIA_TIMEOUT_MS }),
+          { indexName, objectIdsCount: objectIds.length },
+        );
       }),
     );
   }
@@ -75,34 +101,38 @@ export class AlgoliaSearchProvider implements SearchProvider {
       this.#indexNames.map(async (indexName) => {
         const index = this.#algolia.initIndex(indexName);
 
-        return index.setSettings({
-          attributesForFaceting: [
-            "productId",
-            "inStock",
-            "categories",
-            "attributes",
-            "collections",
-            "pricing.price.net",
-            "pricing.price.gross",
-            "pricing.discount.net",
-            "pricing.discount.gross",
-            "pricing.priceUndiscounted.net",
-            "pricing.priceUndiscounted.gross",
-            "pricing.onSale",
-          ],
-          attributeForDistinct: "productId",
-          numericAttributesForFiltering: ["grossPrice"],
-          distinct: true,
-          searchableAttributes: [
-            "name",
-            "productName",
-            "variantName",
-            "productType",
-            "category",
-            "descriptionPlaintext",
-            "collections",
-          ],
-        });
+        return this.#traceSetSettings(
+          () =>
+            index.setSettings({
+              attributesForFaceting: [
+                "productId",
+                "inStock",
+                "categories",
+                "attributes",
+                "collections",
+                "pricing.price.net",
+                "pricing.price.gross",
+                "pricing.discount.net",
+                "pricing.discount.gross",
+                "pricing.priceUndiscounted.net",
+                "pricing.priceUndiscounted.gross",
+                "pricing.onSale",
+              ],
+              attributeForDistinct: "productId",
+              numericAttributesForFiltering: ["grossPrice"],
+              distinct: true,
+              searchableAttributes: [
+                "name",
+                "productName",
+                "variantName",
+                "productType",
+                "category",
+                "descriptionPlaintext",
+                "collections",
+              ],
+            }),
+          { indexName },
+        );
       }),
     );
   }
@@ -142,7 +172,14 @@ export class AlgoliaSearchProvider implements SearchProvider {
       this.#indexNames.map((indexName) => {
         const index = this.#algolia.initIndex(indexName);
 
-        return index.deleteBy({ filters: `productId:"${product.id}"` });
+        return this.#traceDeleteBy(
+          () =>
+            index.deleteBy(
+              { filters: `productId:"${product.id}"` },
+              { timeout: ALGOLIA_TIMEOUT_MS },
+            ),
+          { indexName, productId: product.id },
+        );
       }),
     );
   }
