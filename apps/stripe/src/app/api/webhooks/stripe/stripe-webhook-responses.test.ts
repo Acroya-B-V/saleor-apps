@@ -50,7 +50,7 @@ describe("StripeWebhookUnrecognizedEventResponse", () => {
 
     expect(response.status).toBe(200);
     await expect(response.text()).resolves.toMatchInlineSnapshot(
-      `"Event from unrecognized connected account - ignored"`,
+      `"Event not managed by this Saleor app - ignored"`,
     );
   });
 });

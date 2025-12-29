@@ -162,7 +162,7 @@ describe("StripeWebhookUseCase - Error cases", () => {
 
     expect(result._unsafeUnwrap()).toMatchInlineSnapshot(`
       StripeWebhookUnrecognizedEventResponse {
-        "message": "Event from unrecognized connected account - ignored",
+        "message": "Event not managed by this Saleor app - ignored",
         "statusCode": 200,
       }
     `);
