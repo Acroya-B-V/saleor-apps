@@ -1,5 +1,76 @@
 # saleor-app-search
 
+## 1.24.6
+
+### Patch Changes
+
+- 9e17703c: Updated tTRPC to 10.45.3
+
+## 1.24.5
+
+### Patch Changes
+
+- 1e880d4e: Increased available memory (for Vercel deployments), which should leave more margin in case of loading large products
+
+## 1.24.4
+
+### Patch Changes
+
+- 37b91c88: Added logs and spans for tracing time of external API calls. When making API request, app will start timer and produce `debug` logs:
+
+  - on start
+  - on finish
+
+  App will additionally send `warning` logs when expected time for API request is exceeded:
+
+  - Algolia API calls - 10s
+  - Saleor API calls - 5s
+  - DynamoDB API calls - 1s
+
+- Updated dependencies [37b91c88]
+  - @saleor/apps-otel@2.4.0
+  - @saleor/apps-logger@1.6.3
+
+## 1.24.3
+
+### Patch Changes
+
+- d0340d6b: Increased memory limits in Vercel by 1.5x, now app can use up to 384 MB for handling Saleor webhooks.
+
+## 1.24.2
+
+### Patch Changes
+
+- 98459d79: Updated Next.js to 15.2.6
+- b1f10da0: Added logs when app fails to install due to error in APL, or due to disallowed domain and when app installs successfully
+- Updated dependencies [98459d79]
+  - @saleor/apps-logger@1.6.2
+  - @saleor/apps-otel@2.3.1
+  - @saleor/react-hook-form-macaw@0.2.16
+  - @saleor/sentry-utils@0.2.5
+  - @saleor/apps-shared@1.14.1
+  - @saleor/apps-ui@1.3.2
+  - @saleor/webhook-utils@0.2.6
+
+## 1.24.1
+
+### Patch Changes
+
+- 848e170e: Improved error handling for Algolia record size limit errors.
+  When a product variant exceeds Algolia's 10KB limit, the webhook now returns a HTTP 413 error with clear error message (can be seen in Saleor Dashboard).
+  These expected errors are now logged as warnings instead of errors.
+- 4b6effba: Added 5s timeout for write operations. Now Algolia will fail faster allowing us to catch error.
+
+## 1.24.0
+
+### Minor Changes
+
+- 16c6448f: After this change required Saleor version for running the app will be **3.20**
+
+### Patch Changes
+
+- 86747b3c: When users open app outside of Saleor Dashboard's iframe we will now display an error message with explanation. Previously we rendered app's UI, which caused frontend to make requests to the app without any required data (tokens, saleorApiUrl, etc.) which resulted in error logs.
+
 ## 1.23.18
 
 ### Patch Changes

@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import { AddressFragment, SourceObjectFragment } from "@/generated/graphql";
 
 import {
-  formatAddress,
   formatCustomerName,
   formatPhone,
   getEmailFromSourceObject,
@@ -77,6 +76,8 @@ const addressFragment = {
   country: {
     code: "JP",
   },
+  city: "Tokyo",
+  cityArea: "Shibyua",
 } satisfies AddressFragment;
 
 describe("formatCustomerName", () => {
@@ -84,14 +85,6 @@ describe("formatCustomerName", () => {
     const name = formatCustomerName(addressFragment);
 
     expect(name).toMatchInlineSnapshot(`"LastName FirstName"`);
-  });
-});
-
-describe("formatAddress", () => {
-  it("should convert address into Atobarai required address", () => {
-    const address = formatAddress(addressFragment);
-
-    expect(address).toMatchInlineSnapshot(`"CountryAreaStreetAddress1StreetAddress2"`);
   });
 });
 
